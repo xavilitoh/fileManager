@@ -11,6 +11,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Authors>Xavier Berroa</Authors>
+    <Copyright>WXBO soft</Copyright>
+    <NeutralLanguage>es</NeutralLanguage>
+    <PackageId>File_Manager</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
