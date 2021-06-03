@@ -1,14 +1,15 @@
-﻿using FileManager.Abstract;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
+﻿
 
 namespace FileManager
 {
+    using FileManager.Abstract;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Configuration;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using System.Text;
     public class FileManageFTP : IFileManageFTP
     {
         private readonly IConfiguration configuration;
@@ -34,7 +35,6 @@ namespace FileManager
 
             return $"{identificador}_{app}_{subName.Replace(" ", "").Replace(":", string.Empty).Replace("?", "").Replace("¿", string.Empty).Replace("!", string.Empty).Replace("~", string.Empty).Replace("*", string.Empty).Replace("/", string.Empty).Replace("`", string.Empty)}-{index}{Path.GetExtension(file.FileName)}";
         }
-
 
 
         /// <summary>
@@ -68,6 +68,35 @@ namespace FileManager
 
             return absoluteFileName;
         }
+
+        public string UploadFile(string fileName, byte[] file)
+        {
+
+            fileName = UploadFile(file, fileName);
+
+            string absoluteFileName = Path.GetFileName(fileName);
+
+            WebRequest request = (FtpWebRequest)WebRequest.Create($"{hostFtp}/wwwroot/{absoluteFileName}");
+            request.Method = WebRequestMethods.Ftp.UploadFile;
+
+            request.Credentials = new NetworkCredential(userFtp, passFtp);
+
+            using (FileStream fs = File.OpenRead(fileName))
+            {
+                byte[] buffer = new byte[fs.Length];
+                fs.Read(buffer, 0, buffer.Length);
+                fs.Close();
+                Stream requestStream = request.GetRequestStream();
+                requestStream.Write(buffer, 0, buffer.Length);
+                requestStream.Flush();
+                requestStream.Close();
+            }
+
+            System.IO.File.Delete(fileName);
+
+            return absoluteFileName;
+        }
+
 
         public string DeleteFile(string fileName)
         {
@@ -114,6 +143,42 @@ namespace FileManager
                 return Path.Combine(path, "noImage.png");
             }
         }
+
+        public string UploadFile(byte[] file, string fileName)
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), $"wwwroot/files/images/");
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            if (file != null)
+            {
+                var myFile = Path.Combine(path, fileName);
+
+                FileStream fs = new FileStream(myFile, FileMode.Create);
+                BinaryWriter w = new BinaryWriter(fs);
+
+                try
+                {
+                    w.Write(file);
+                }
+                finally
+                {
+                    fs.Close();
+                    w.Close();
+                }
+
+                return fileName;
+            }
+            else
+            {
+                return Path.Combine(path, "noImage.png");
+            }
+        }
+
+
 
         public byte[] GetBytesFromUrl(string url)
         {
